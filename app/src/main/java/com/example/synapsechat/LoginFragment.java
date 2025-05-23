@@ -8,6 +8,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
 import android.util.Base64;
@@ -135,8 +136,12 @@ public class LoginFragment extends Fragment {
                         .putString("password",  pass)
                         .apply();
 
+                AppCompatActivity activity = (AppCompatActivity) requireActivity();
+                if (activity.getSupportActionBar() != null) {
+                    activity.getSupportActionBar().setTitle("Настройки");
+                }
                 requireActivity().getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.fragment_container, new ChatFragment())
+                        .replace(R.id.fragment_container, new SettingsFragment())
                         .addToBackStack(null)
                         .commit();
             } else {

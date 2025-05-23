@@ -1,17 +1,14 @@
 package com.example.synapsechat;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,26 +21,36 @@ import android.widget.Toast;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import io.noties.markwon.Markwon;
+
 public class ChatFragment extends Fragment {
-    private String serverIp, username, password;
-
     private RecyclerView rvMessages;
-    private EditText etMessage;
-    private Button btnSend;
+    private EditText     etMessage;
+    private Button       btnSend;
+    private TextView     tvStatus;      // статус "бот думает..."
     private MessageAdapter adapter;
-    private List<Message> messages = new ArrayList<>();
+    private List<Message>  messages = new ArrayList<>();
 
-    @Nullable @Override
+    private String serverIp;
+    private String username;
+    private String password;
+    private String sessionId;
+    private String model;
+
+    private Markwon markwon;
+
+    @Nullable
+    @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
@@ -55,70 +62,100 @@ public class ChatFragment extends Fragment {
                               @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // 2) Инициализируем UI
         rvMessages = view.findViewById(R.id.rvMessages);
         etMessage  = view.findViewById(R.id.etMessage);
         btnSend    = view.findViewById(R.id.btnSend);
+        tvStatus   = view.findViewById(R.id.tvStatus);       // новый TextView в layout
 
-        adapter = new MessageAdapter(messages);
-        rvMessages.setLayoutManager(new LinearLayoutManager(getContext()));
+        // Изначально статус скрыт
+        tvStatus.setVisibility(View.GONE);
+
+        // Настраиваем Markwon
+        markwon = Markwon.create(requireContext());
+
+        // RecyclerView + Adapter
+        rvMessages.setLayoutManager(new LinearLayoutManager(requireContext()));
+        adapter = new MessageAdapter(messages, markwon);
         rvMessages.setAdapter(adapter);
 
-        // 3) Загружаем историю чата (если нужно)
-        new LoadHistoryTask().execute();
+        // Загружаем настройки
+        SharedPreferences prefs = requireContext()
+                .getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
+        serverIp  = prefs.getString("server_ip", "");
+        username  = prefs.getString("username", "");
+        password  = prefs.getString("password", "");
+        model     = prefs.getString("aimodel", "");
+        sessionId = username + "1";
 
-        // 4) Отправка сообщения
+        // Клик для отправки
         btnSend.setOnClickListener(v -> {
-            String text = etMessage.getText().toString().trim();
-            if (text.isEmpty()) return;
-            new SendMessageTask(text).execute();
+            String prompt = etMessage.getText().toString().trim();
+            if (prompt.isEmpty()) return;
+
+            // 1) показываем своё сообщение сразу
+            messages.add(new Message(username, prompt));
+            adapter.notifyItemInserted(messages.size() - 1);
+            rvMessages.scrollToPosition(messages.size() - 1);
+
+            // 2) чистим ввод и шлём на сервер
             etMessage.setText("");
+            new SendMessageTask(prompt).execute();
         });
     }
 
-    // Задача для отправки сообщения на сервер
-    private class SendMessageTask extends AsyncTask<Void, Void, Message> {
-        private final String text;
+    private class SendMessageTask extends AsyncTask<Void, Void, String> {
+        private final String prompt;
         private String error;
 
-        SendMessageTask(String text) { this.text = text; }
+        SendMessageTask(String prompt) {
+            this.prompt = prompt;
+        }
 
         @Override
-        protected Message doInBackground(Void... voids) {
+        protected void onPreExecute() {
+            // Отключаем кнопку и показываем статус
+            btnSend.setEnabled(false);
+            tvStatus.setText("Бот думает…");
+            tvStatus.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        protected String doInBackground(Void... voids) {
             HttpURLConnection conn = null;
             try {
-                URL url = new URL("http://" + serverIp + "/chat");
+                URL url = new URL("http://" + serverIp + "/chat/" + sessionId);
                 conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("POST");
-                conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-
+                conn.setRequestProperty(
+                        "Content-Type", "application/json; charset=UTF-8");
                 String creds = username + ":" + password;
-                String auth = "Basic " +
-                        Base64.encodeToString(creds.getBytes("UTF-8"), Base64.NO_WRAP);
+                String auth = "Basic " + Base64.encodeToString(
+                        creds.getBytes(StandardCharsets.UTF_8),
+                        Base64.NO_WRAP);
                 conn.setRequestProperty("Authorization", auth);
-
                 conn.setDoOutput(true);
+
                 JSONObject body = new JSONObject();
-                body.put("message", text);
+                body.put("model", model);
+                body.put("prompt", prompt);
                 try (OutputStream os = conn.getOutputStream()) {
-                    os.write(body.toString().getBytes("UTF-8"));
+                    os.write(body.toString()
+                            .getBytes(StandardCharsets.UTF_8));
                 }
 
                 int code = conn.getResponseCode();
+                InputStream in = (code == HttpURLConnection.HTTP_OK)
+                        ? conn.getInputStream()
+                        : conn.getErrorStream();
+                String resp = new BufferedReader(
+                        new InputStreamReader(in, StandardCharsets.UTF_8))
+                        .lines().collect(Collectors.joining("\n"));
+
                 if (code == HttpURLConnection.HTTP_OK) {
-                    // читаем ответ
-                    InputStream in = conn.getInputStream();
-                    String resp = new BufferedReader(new InputStreamReader(in))
-                            .lines().collect(Collectors.joining("\n"));
                     JSONObject json = new JSONObject(resp);
-                    // допустим, сервер возвращает {"user":"...", "message":"...", "timestamp":...}
-                    return new Message(
-                            json.getString("user"),
-                            json.getString("message"),
-                            json.getLong("timestamp")
-                    );
+                    return json.optString("response", "");
                 } else {
-                    error = "Ошибка сервера: " + code;
+                    error = "Ошибка " + code + ": " + resp;
                     return null;
                 }
             } catch (Exception e) {
@@ -130,71 +167,73 @@ public class ChatFragment extends Fragment {
         }
 
         @Override
-        protected void onPostExecute(Message msg) {
-            if (msg != null) {
-                messages.add(msg);
+        protected void onPostExecute(String botResponse) {
+            // Включаем кнопку и скрываем статус
+            btnSend.setEnabled(true);
+            tvStatus.setVisibility(View.GONE);
+
+            if (botResponse != null) {
+                // Добавляем ответ бота
+                messages.add(new Message("Bot", botResponse));
                 adapter.notifyItemInserted(messages.size() - 1);
-                rvMessages.smoothScrollToPosition(messages.size() - 1);
+                rvMessages.scrollToPosition(messages.size() - 1);
             } else {
-                Toast.makeText(getContext(),
+                Toast.makeText(requireContext(),
                         "Не удалось отправить: " + error,
                         Toast.LENGTH_SHORT).show();
             }
         }
     }
 
-    // Задача для загрузки истории
-    private class LoadHistoryTask extends AsyncTask<Void, Void, List<Message>> {
-        @Override
-        protected List<Message> doInBackground(Void... voids) {
-            // аналогично: GET http://serverIp:8000/history
-            // и собираете List<Message>
-            return new ArrayList<>(); // заглушка
-        }
-        @Override
-        protected void onPostExecute(List<Message> list) {
-            messages.clear();
-            messages.addAll(list);
-            adapter.notifyDataSetChanged();
-        }
-    }
-
-    // Модель сообщения
     public static class Message {
-        public final String user;
+        public final String sender;
         public final String text;
-        public final long timestamp;
-        public Message(String user, String text, long timestamp) {
-            this.user = user; this.text = text; this.timestamp = timestamp;
+        public Message(String sender, String text) {
+            this.sender = sender;
+            this.text   = text;
         }
     }
 
-    // Простой адаптер для RecyclerView
     public static class MessageAdapter
             extends RecyclerView.Adapter<MessageAdapter.VH> {
         private final List<Message> items;
-        public MessageAdapter(List<Message> items) { this.items = items; }
+        private final Markwon     markwon;
 
-        @NonNull @Override
-        public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        public MessageAdapter(List<Message> items, Markwon markwon) {
+            this.items   = items;
+            this.markwon = markwon;
+        }
+
+        @NonNull
+        @Override
+        public VH onCreateViewHolder(
+                @NonNull ViewGroup parent, int viewType) {
             View v = LayoutInflater.from(parent.getContext())
-                    .inflate(android.R.layout.simple_list_item_2, parent, false);
+                    .inflate(android.R.layout.simple_list_item_2,
+                            parent, false);
             return new VH(v);
         }
+
         @Override
-        public void onBindViewHolder(@NonNull VH holder, int pos) {
-            Message m = items.get(pos);
-            holder.tv1.setText(m.user);
-            holder.tv2.setText(m.text);
+        public void onBindViewHolder(
+                @NonNull VH holder, int position) {
+            Message m = items.get(position);
+            holder.tv1.setText(m.sender);
+            // Рендерим Markdown
+            markwon.setMarkdown(holder.tv2, m.text);
         }
-        @Override public int getItemCount() { return items.size(); }
+
+        @Override
+        public int getItemCount() {
+            return items.size();
+        }
 
         static class VH extends RecyclerView.ViewHolder {
             TextView tv1, tv2;
-            VH(@NonNull View v) {
-                super(v);
-                tv1 = v.findViewById(android.R.id.text1);
-                tv2 = v.findViewById(android.R.id.text2);
+            VH(@NonNull View itemView) {
+                super(itemView);
+                tv1 = itemView.findViewById(android.R.id.text1);
+                tv2 = itemView.findViewById(android.R.id.text2);
             }
         }
     }

@@ -1,16 +1,142 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
+<androidx.drawerlayout.widget.DrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    android:fitsSystemWindows="true">
 
+    <!-- Основной контент -->
     <FrameLayout
         android:id="@+id/fragment_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
+    <!-- Кастомная панель слева -->
+    <LinearLayout
+        android:id="@+id/left_drawer"
+        android:layout_width="280dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:orientation="vertical"
+        android:background="?android:attr/windowBackground">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <!-- 1) Заголовок и кнопка New chat -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/app_title"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="SynapseChat"
+                android:textSize="20sp"
+                android:textStyle="bold"/>
+
+            <ImageButton
+                android:id="@+id/btn_new_chat"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_add"
+                android:contentDescription="New chat"
+                android:background="?attr/selectableItemBackgroundBorderless"/>
+        </LinearLayout>
+
+        <!-- 2) Список со скроллом -->
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <LinearLayout
+                android:id="@+id/menu_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- Секция Today -->
+                <TextView
+                    android:layout_marginTop="8dp"
+                    android:layout_marginStart="16dp"
+                    android:text="Today"
+                    android:textStyle="bold"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <!-- Пример чата -->
+                <TextView
+                    style="@style/DrawerItem"
+                    android:id="@+id/chat_today_1"
+                    android:text="Общаемся как тикток-подросток"/>
+
+                <!-- Секция 7 Days -->
+                <TextView
+                    android:layout_marginTop="16dp"
+                    android:layout_marginStart="16dp"
+                    android:text="7 Days"
+                    android:textStyle="bold"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <TextView
+                    style="@style/DrawerItem"
+                    android:id="@+id/chat_7d_1"
+                    android:text="Интеграция curl в Android Studio"/>
+                <!-- … ещё элементы … -->
+
+                <!-- Секция 30 Days -->
+                <TextView
+                    android:layout_marginTop="16dp"
+                    android:layout_marginStart="16dp"
+                    android:text="30 Days"
+                    android:textStyle="bold"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <TextView
+                    style="@style/DrawerItem"
+                    android:id="@+id/chat_30d_1"
+                    android:text="SQLAlchemy Python 3.13 Compatibility"/>
+                <!-- … и т.д. … -->
+
+            </LinearLayout>
+        </ScrollView>
+
+        <!-- 3) Футер: Get App + профиль -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#DDD"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:gravity="center_vertical">
+
+            <Button
+                android:id="@+id/btn_logout"
+                android:layout_width="10dp"
+                android:background="#FF0000"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Выход"
+                android:textColor="@color/white"/>
+
+            <ImageView
+                android:id="@+id/img_profile"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_profile"
+                android:contentDescription="Profile"
+                android:layout_marginStart="8dp"/>
+        </LinearLayout>
+
+    </LinearLayout>
+</androidx.drawerlayout.widget.DrawerLayout>
