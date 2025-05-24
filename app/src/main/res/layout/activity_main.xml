@@ -37,14 +37,17 @@
                 android:text="SynapseChat"
                 android:textSize="20sp"
                 android:textStyle="bold"/>
-
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/btn_update"
+                android:src="@drawable/ic_update"/>
             <ImageButton
                 android:id="@+id/btn_new_chat"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_add"
-                android:contentDescription="New chat"
-                android:background="?attr/selectableItemBackgroundBorderless"/>
+                android:contentDescription="New chat"/>
         </LinearLayout>
 
         <!-- 2) Список со скроллом -->
@@ -120,14 +123,6 @@
             android:padding="16dp"
             android:gravity="center_vertical">
 
-            <Button
-                android:id="@+id/btn_logout"
-                android:layout_width="10dp"
-                android:background="#FF0000"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Выход"
-                android:textColor="@color/white"/>
 
             <ImageView
                 android:id="@+id/img_profile"

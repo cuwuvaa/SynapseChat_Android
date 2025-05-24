@@ -20,6 +20,8 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.example.synapsechat.MainActivity;
+
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -36,7 +38,7 @@ public class LoginFragment extends Fragment {
             @Nullable Bundle savedInstanceState
     ) {
         View v = inflater.inflate(R.layout.fragment_login, container, false);
-
+        ((MainActivity) requireActivity()).setDrawerEnabled(false);
         etServerIp = v.findViewById(R.id.etServerIp);
         etUsername = v.findViewById(R.id.etUsername);
         etPassword = v.findViewById(R.id.etPassword);
@@ -140,9 +142,10 @@ public class LoginFragment extends Fragment {
                 if (activity.getSupportActionBar() != null) {
                     activity.getSupportActionBar().setTitle("Настройки");
                 }
+
+                ((MainActivity) requireActivity()).setDrawerEnabled(true);
                 requireActivity().getSupportFragmentManager().beginTransaction()
                         .replace(R.id.fragment_container, new SettingsFragment())
-                        .addToBackStack(null)
                         .commit();
             } else {
                 Toast.makeText(getContext(), errorMsg,

@@ -1,15 +1,11 @@
 package com.example.synapsechat;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-
 import android.util.Base64;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,49 +16,68 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
 public class SettingsFragment extends Fragment {
-    private Spinner spinnerModels, spinnerAvailableModels;
-    private SharedPreferences prefs;
+    private Spinner spinnerModels;
+    private Spinner spinnerAvailableModels;
+    private Spinner spinnerAvailableVariants;
     private TextView installInfo;
-    private Button installButton;
-    private String serverIp, username, password, modelToInstall;
+    private Button installButton,logoutButton;
+
+    private SharedPreferences prefs;
+    private String serverIp, username, password;
+    // выбранная базовая модель и её вариант
+    private String modelToInstall;
+    private String variantToInstall;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        prefs    = requireContext().getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
-        serverIp = prefs.getString("server_ip", "");
-        username = prefs.getString("username", "");
-        password = prefs.getString("password", "");
+        prefs      = requireContext()
+                .getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
+        serverIp   = prefs.getString("server_ip", "");
+        username   = prefs.getString("username", "");
+        password   = prefs.getString("password", "");
     }
 
     @Nullable @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
-                             @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
+                             @Nullable ViewGroup  container,
+                             @Nullable Bundle     savedInstanceState) {
         View root = inflater.inflate(
                 R.layout.fragment_settings, container, false
         );
-        installInfo = root.findViewById(R.id.installinfo);
-        installButton = root.findViewById(R.id.installbutton);
-        installButton.setOnClickListener(v -> {
-            sendInstallRequest();
-        });
+        installInfo             = root.findViewById(R.id.installinfo);
+        installButton           = root.findViewById(R.id.installbutton);
 
-        spinnerModels = root.findViewById(R.id.spinnerModels);
-        spinnerAvailableModels = root.findViewById(R.id.spinnerAvailableModels);
+        spinnerModels           = root.findViewById(R.id.spinnerModels);
+        spinnerAvailableModels  = root.findViewById(R.id.spinnerAvailableModels);
+        spinnerAvailableVariants= root.findViewById(R.id.spinnerAvailableVariants);
+        // 5) Logout button
+        logoutButton =  root.findViewById(R.id.btn_logout);
+        logoutButton.setOnClickListener(v -> {
+            prefs.edit().putBoolean("savelogin", false).apply();
+            requireActivity().getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, new LoginFragment())
+                    .commit();
+            getActivity().setTitle("Вход");
+        });
+        installButton.setOnClickListener(v -> sendInstallRequest());
         return root;
     }
 
@@ -70,76 +85,15 @@ public class SettingsFragment extends Fragment {
     public void onViewCreated(@NonNull View view,
                               @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        fetchInstalledModels("installed",spinnerModels);
-        fetchInstalledModels("available",spinnerAvailableModels);
+        // заполнить список установленных и доступных моделей
+        fetchInstalledModels("installed", spinnerModels);
+        fetchInstalledModels("available", spinnerAvailableModels);
     }
 
-    private void sendInstallRequest()
-    {
-        new AsyncTask<Void, Void, Boolean>() {
-            String errorMsg;
-
-            @Override
-            protected Boolean doInBackground(Void... voids) {
-                HttpURLConnection conn = null;
-                try {
-                    // Кодируем имя модели, чтобы безопасно подставить в URL
-                    String nameEnc = URLEncoder.encode(modelToInstall, "UTF-8");
-                    URL url = new URL("http://" + serverIp +
-                            "/models/" + nameEnc + "/install");
-                    conn = (HttpURLConnection) url.openConnection();
-                    conn.setRequestMethod("POST");
-                    conn.setConnectTimeout(5000);
-                    conn.setReadTimeout(5000);
-
-                    // Basic Auth
-                    String creds = username + ":" + password;
-                    String auth = "Basic " +
-                            Base64.encodeToString(
-                                    creds.getBytes("UTF-8"),
-                                    Base64.NO_WRAP
-                            );
-                    conn.setRequestProperty("Authorization", auth);
-
-                    // Выполняем запрос
-                    int code = conn.getResponseCode();
-                    if (code == HttpURLConnection.HTTP_OK) {
-                        return true;
-                    } else if (code == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                        errorMsg = "401: Неверный логин/пароль";
-                        return false;
-                    } else {
-                        errorMsg = "Сервер вернул код " + code;
-                        return false;
-                    }
-                } catch (Exception e) {
-                    errorMsg = "Ошибка: " + e.getMessage();
-                    return false;
-                } finally {
-                    if (conn != null) conn.disconnect();
-                }
-            }
-
-            @Override
-            protected void onPostExecute(Boolean success) {
-                Context ctx = requireContext();
-                if (success) {
-                    Toast.makeText(ctx,
-                            "Модель «" + modelToInstall + "» установлена",
-                            Toast.LENGTH_LONG).show();
-                } else {
-                    Toast.makeText(ctx,
-                            errorMsg,
-                            Toast.LENGTH_LONG).show();
-                }
-            }
-        }.execute();
-
-    }
-    private void fetchInstalledModels(String status, Spinner spinnerModels) {
+    @SuppressLint("StaticFieldLeak")
+    private void fetchInstalledModels(String status, Spinner spinner) {
         new AsyncTask<Void, Void, List<String>>() {
             Exception exception;
-
             @Override
             protected List<String> doInBackground(Void... voids) {
                 List<String> result = new ArrayList<>();
@@ -148,17 +102,14 @@ public class SettingsFragment extends Fragment {
                     URL url = new URL("http://" + serverIp + "/models");
                     conn = (HttpURLConnection) url.openConnection();
                     conn.setRequestMethod("GET");
-                    // Basic Auth
-                    String creds = username + ":" + password;
-                    String auth  = "Basic " + android.util.Base64
-                            .encodeToString(creds.getBytes("UTF-8"),
-                                    android.util.Base64.NO_WRAP);
+                    String auth = "Basic " + Base64.encodeToString(
+                            (username + ":" + password)
+                                    .getBytes("UTF-8"),
+                            Base64.NO_WRAP
+                    );
                     conn.setRequestProperty("Authorization", auth);
-
                     int code = conn.getResponseCode();
-                    if (code == 401) throw new RuntimeException("UNAUTHORIZED");
-                    if (code != 200) throw new RuntimeException("HTTP code: " + code);
-
+                    if (code != 200) throw new RuntimeException("HTTP " + code);
                     BufferedReader reader = new BufferedReader(
                             new InputStreamReader(conn.getInputStream())
                     );
@@ -167,10 +118,8 @@ public class SettingsFragment extends Fragment {
                     while ((line = reader.readLine()) != null) {
                         sb.append(line);
                     }
-                    reader.close();
-
                     JSONObject json = new JSONObject(sb.toString());
-                    JSONArray arr    = json.optJSONArray(status);
+                    JSONArray arr = json.optJSONArray(status);
                     if (arr != null) {
                         for (int i = 0; i < arr.length(); i++) {
                             result.add(arr.getString(i));
@@ -188,75 +137,201 @@ public class SettingsFragment extends Fragment {
             protected void onPostExecute(List<String> models) {
                 if (!isAdded()) return;
                 Context ctx = requireContext();
-
                 if (exception != null) {
-                    String msg = exception.getMessage();
-                    if ("UNAUTHORIZED".equals(msg)) {
-                        Toast.makeText(ctx,
-                                "Ошибка 401: Неверный логин или пароль",
-                                Toast.LENGTH_LONG).show();
-                    } else {
-                        Toast.makeText(ctx,
-                                "Ошибка при загрузке: " + msg,
-                                Toast.LENGTH_LONG).show();
-                    }
+                    Toast.makeText(ctx,
+                            "Ошибка загрузки моделей: " + exception.getMessage(),
+                            Toast.LENGTH_LONG).show();
                     return;
                 }
                 if (models.isEmpty()) {
-                    Toast.makeText(ctx,
-                            "Нет установленных моделей",
-                            Toast.LENGTH_SHORT).show();
+                    String msg = status.equals("installed")
+                            ? "Нет установленных моделей"
+                            : "Нет доступных моделей";
+                    Toast.makeText(ctx, msg, Toast.LENGTH_SHORT).show();
                     return;
                 }
-
-                // 1) Создаём адаптер и навешиваем на Spinner
                 ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                        ctx,
-                        android.R.layout.simple_spinner_item,
-                        models
+                        ctx, android.R.layout.simple_spinner_item, models
                 );
                 adapter.setDropDownViewResource(
                         android.R.layout.simple_spinner_dropdown_item
                 );
-                spinnerModels.setAdapter(adapter);
+                spinner.setAdapter(adapter);
 
-                spinnerModels.setOnItemSelectedListener(
+                spinner.setOnItemSelectedListener(
                         new AdapterView.OnItemSelectedListener() {
                             @Override
                             public void onItemSelected(AdapterView<?> parent,
                                                        View view,
                                                        int position,
                                                        long id) {
-                                String model = adapter.getItem(position);
-                                // Сохраняем в prefs если installed
-                                if (status == "installed")
-                                {
-                                    boolean ok = prefs.edit()
-                                            .putString("aimodel", model)
-                                            .commit();  // или .apply()
-                                    Log.d("SettingsFragment",
-                                            "Saved aimodel=" + model + " ok=" + ok);
-
+                                String selected = adapter.getItem(position);
+                                if ("installed".equals(status)) {
+                                    prefs.edit()
+                                            .putString("aimodel", selected)
+                                            .apply();
+                                } else if ("available".equals(status)) {
+                                    modelToInstall = selected;
+                                    installInfo.setText(
+                                            "Выбрано: " + selected
+                                    );
+                                    // сразу подгрузить варианты
+                                    fetchVariants(selected);
                                 }
-
-                                else if (status == "available")
-                                {
-                                    installInfo.setText("Установить модель: " + model);
-                                    modelToInstall = model;
-                                }
-                                                            }
+                            }
                             @Override
-                            public void onNothingSelected(AdapterView<?> parent) { }
+                            public void onNothingSelected(
+                                    AdapterView<?> parent) { }
                         }
                 );
-                // 3) Восстанавливаем предыдущий выбор _после_ навешивания слушателя
-                String last = prefs.getString("aimodel", null);
-                if (last != null) {
-                    int pos = adapter.getPosition(last);
-                    if (pos >= 0) {
-                        spinnerModels.setSelection(pos);
-                        // setSelection вызовет onItemSelected и запишет тот же ключ
+            }
+        }.execute();
+    }
+    @SuppressLint("StaticFieldLeak")
+    private void fetchVariants(String modelName) {
+        new AsyncTask<Void, Void, List<String>>() {
+            Exception exception;
+            @Override
+            protected List<String> doInBackground(Void... voids) {
+                List<String> variants = new ArrayList<>();
+                HttpURLConnection conn = null;
+                try {
+                    String enc = URLEncoder.encode(modelName, "UTF-8");
+                    URL url = new URL("http://" + serverIp +
+                            "/models/" + enc + "/variants"
+                    );
+                    conn = (HttpURLConnection) url.openConnection();
+                    conn.setRequestMethod("GET");
+                    String auth = "Basic " + Base64.encodeToString(
+                            (username + ":" + password)
+                                    .getBytes("UTF-8"),
+                            Base64.NO_WRAP
+                    );
+                    conn.setRequestProperty("Authorization", auth);
+                    int code = conn.getResponseCode();
+                    if (code != 200) throw new RuntimeException("HTTP " + code);
+                    BufferedReader reader = new BufferedReader(
+                            new InputStreamReader(conn.getInputStream())
+                    );
+                    StringBuilder sb = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        sb.append(line);
                     }
+                    JSONArray arr = new JSONArray(sb.toString());
+                    for (int i = 0; i < arr.length(); i++) {
+                        variants.add(arr.getString(i));
+                    }
+                } catch (Exception e) {
+                    exception = e;
+                } finally {
+                    if (conn != null) conn.disconnect();
+                }
+                return variants;
+            }
+
+            @Override
+            protected void onPostExecute(List<String> variants) {
+                if (!isAdded()) return;
+                Context ctx = requireContext();
+                if (exception != null) {
+                    Toast.makeText(ctx,
+                            "Не удалось получить варианты: " +
+                                    exception.getMessage(),
+                            Toast.LENGTH_LONG).show();
+                    return;
+                }
+                if (variants.isEmpty()) {
+                    Toast.makeText(ctx,
+                            "Нет вариантов для " + modelName,
+                            Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                        ctx, android.R.layout.simple_spinner_item, variants
+                );
+                adapter.setDropDownViewResource(
+                        android.R.layout.simple_spinner_dropdown_item
+                );
+                spinnerAvailableVariants.setAdapter(adapter);
+
+                spinnerAvailableVariants.setOnItemSelectedListener(
+                        new AdapterView.OnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(AdapterView<?> parent,
+                                                       View view,
+                                                       int position,
+                                                       long id) {
+                                variantToInstall = adapter.getItem(position);
+                                installInfo.setText(
+                                        "Установить: " + variantToInstall
+                                );
+                            }
+                            @Override
+                            public void onNothingSelected(
+                                    AdapterView<?> parent) { }
+                        }
+                );
+            }
+        }.execute();
+    }
+    @SuppressLint("StaticFieldLeak")
+    private void sendInstallRequest() {
+        if (variantToInstall == null) {
+            Toast.makeText(requireContext(),
+                    "Выберите вариант модели", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        new AsyncTask<Void, Void, Boolean>() {
+            String errorMsg;
+            @Override
+            protected Boolean doInBackground(Void... voids) {
+                HttpURLConnection conn = null;
+                try {
+                    String nameEnc = URLEncoder.encode(
+                            variantToInstall, "UTF-8"
+                    );
+                    URL url = new URL("http://" + serverIp +
+                            "/models/" + nameEnc + "/install"
+                    );
+                    conn = (HttpURLConnection) url.openConnection();
+                    conn.setRequestMethod("POST");
+                    conn.setConnectTimeout(5000);
+                    conn.setReadTimeout(5000);
+
+                    String auth = "Basic " + Base64.encodeToString(
+                            (username + ":" + password)
+                                    .getBytes(StandardCharsets.UTF_8),
+                            Base64.NO_WRAP
+                    );
+                    conn.setRequestProperty("Authorization", auth);
+
+                    int code = conn.getResponseCode();
+                    if (code == HttpURLConnection.HTTP_OK) {
+                        return true;
+                    } else if (code == HttpURLConnection.HTTP_UNAUTHORIZED) {
+                        errorMsg = "401: Неверный логин/пароль";
+                    } else {
+                        errorMsg = "Ошибка сервера: " + code;
+                    }
+                    return false;
+                } catch (Exception e) {
+                    errorMsg = "Ошибка: " + e.getMessage();
+                    return false;
+                } finally {
+                    if (conn != null) conn.disconnect();
+                }
+            }
+            @Override
+            protected void onPostExecute(Boolean success) {
+                Context ctx = requireContext();
+                if (success) {
+                    Toast.makeText(ctx,
+                            "Установлен " + variantToInstall,
+                            Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(ctx,
+                            errorMsg, Toast.LENGTH_LONG).show();
                 }
             }
         }.execute();
