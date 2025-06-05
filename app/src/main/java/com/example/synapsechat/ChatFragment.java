@@ -164,18 +164,15 @@ public class ChatFragment extends Fragment {
     private class SendMessageTask extends AsyncTask<Void, Void, String> {
         private final String prompt;
         private String error;
-
         SendMessageTask(String prompt) {
             this.prompt = prompt;
         }
-
         @Override
         protected void onPreExecute() {
             btnSend.setEnabled(false);
             tvStatus.setText("Бот думает…");
             tvStatus.setVisibility(View.VISIBLE);
         }
-
         @Override
         protected String doInBackground(Void... voids) {
             try {
@@ -217,7 +214,6 @@ public class ChatFragment extends Fragment {
             }
             return null;
         }
-
         @Override
         protected void onPostExecute(String botResponse) {
             btnSend.setEnabled(true);

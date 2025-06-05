@@ -1,6 +1,7 @@
 package com.example.synapsechat;
 
-import android.annotation.SuppressLint;
+import android.annotation.SuppressLint
+        ;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;

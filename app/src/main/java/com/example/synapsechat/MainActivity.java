@@ -66,6 +66,13 @@ public class MainActivity extends AppCompatActivity {
             drawer.closeDrawer(GravityCompat.START);
         });
 
+        findViewById(R.id.btn_history).setOnClickListener(v->
+        {
+            loadFragment(new SessionsFragment());
+            getSupportActionBar().setTitle("История");
+            drawer.closeDrawer(GravityCompat.START);
+        });
+
 
         /* 6) New Chat button: compute next sessionId on server, then open ChatFragment */
         findViewById(R.id.btn_new_chat).setOnClickListener(v -> {
@@ -131,25 +138,22 @@ public class MainActivity extends AppCompatActivity {
                         ).show();
                         return;
                     }
-                    // Optionally store counter locally
+
                     prefs.edit()
                             .putInt("chat_counter",
                                     Integer.parseInt(newSessionId.substring(
                                             prefs.getString("username", "").length())))
                             .apply();
 
-                    // Open chat with computed sessionId
                     openChat(newSessionId);
                     getSupportActionBar().setTitle("Чат: " + newSessionId);
                     drawer.closeDrawer(GravityCompat.START);
 
-                    // Refresh list so new chat appears
                     fetchSessions();
                 }
             }.execute();
         });
 
-        // 7) Default start: show login or last fragment
         if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
             loadFragment(new LoginFragment());
             getSupportActionBar().setTitle("Вход");

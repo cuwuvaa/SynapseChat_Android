@@ -1,18 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.drawerlayout.widget.DrawerLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true">
 
-    <!-- Основной контент -->
+    <!-- ========= 1) Основной контент приложения (за Drawer) ========= -->
     <FrameLayout
         android:id="@+id/fragment_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
-    <!-- Кастомная панель слева -->
+    <!-- ========= 2) Левая выезжающая панель ========= -->
     <LinearLayout
         android:id="@+id/left_drawer"
         android:layout_width="280dp"
@@ -21,7 +22,7 @@
         android:orientation="vertical"
         android:background="?android:attr/windowBackground">
 
-        <!-- 1) Заголовок и кнопка New chat -->
+        <!-- === 2.1) Header: название и кнопки === -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -36,21 +37,35 @@
                 android:layout_height="wrap_content"
                 android:text="SynapseChat"
                 android:textSize="20sp"
-                android:textStyle="bold"/>
+                android:textStyle="bold"
+                android:textColor="@android:color/black"/>
+
             <ImageButton
+                android:id="@+id/btn_update"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/btn_update"
-                android:src="@drawable/ic_update"/>
+                android:src="@drawable/ic_update"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Обновить"
+                app:tint="@android:color/black"/>
+
             <ImageButton
                 android:id="@+id/btn_new_chat"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_add"
-                android:contentDescription="New chat"/>
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Новый чат"
+                android:layout_marginStart="8dp"
+                app:tint="@android:color/black"/>
         </LinearLayout>
 
-        <!-- 2) Список со скроллом -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#DDDDDD"/>
+
+        <!-- === 2.2) ScrollView с секциями и элементами === -->
         <ScrollView
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -62,60 +77,154 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <!-- Секция Today -->
                 <TextView
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="12dp"
                     android:layout_marginStart="16dp"
-                    android:text="Today"
+                    android:layout_marginBottom="4dp"
+                    android:text="Сегодня"
                     android:textStyle="bold"
+                    android:textSize="14sp"
+                    android:textColor="@android:color/darker_gray"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
 
-                <!-- Пример чата -->
-                <TextView
+                <!-- Пример элемента (с иконкой слева и «троеточием» справа) -->
+                <LinearLayout
                     style="@style/DrawerItem"
                     android:id="@+id/chat_today_1"
-                    android:text="Общаемся как тикток-подросток"/>
+                    android:orientation="horizontal">
 
-                <!-- Секция 7 Days -->
+                    <ImageView
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_marginStart="16dp"
+                        android:src="@drawable/ic_update"
+                        android:contentDescription=""
+                        app:tint="@android:color/white"
+                        android:background="@drawable/ic_launcher_foreground"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:text="Расчёт дисперсии"
+                        android:textSize="16sp"
+                        android:textColor="@android:color/black"
+                        android:layout_marginStart="12dp"/>
+
+                    <ImageButton
+                        android:id="@+id/btn_more_today_1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/ic_profile"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Подробнее"
+                        android:layout_marginEnd="16dp"
+                        app:tint="@android:color/darker_gray"/>
+                </LinearLayout>
+
                 <TextView
                     android:layout_marginTop="16dp"
                     android:layout_marginStart="16dp"
-                    android:text="7 Days"
+                    android:layout_marginBottom="4dp"
+                    android:text="Вчера"
                     android:textStyle="bold"
+                    android:textSize="14sp"
+                    android:textColor="@android:color/darker_gray"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
 
-                <TextView
+                <LinearLayout
                     style="@style/DrawerItem"
-                    android:id="@+id/chat_7d_1"
-                    android:text="Интеграция curl в Android Studio"/>
-                <!-- … ещё элементы … -->
+                    android:id="@+id/chat_yesterday_1"
+                    android:orientation="horizontal">
 
-                <!-- Секция 30 Days -->
+                    <ImageView
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_marginStart="16dp"
+                        android:src="@drawable/ic_profile"
+                        android:contentDescription=""
+                        app:tint="@android:color/white"
+                        android:background="@drawable/ic_launcher_background"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:text="Рецепт безе"
+                        android:textSize="16sp"
+                        android:textColor="@android:color/black"
+                        android:layout_marginStart="12dp"/>
+
+                    <ImageButton
+                        android:id="@+id/btn_more_yesterday_1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/ic_profile"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Подробнее"
+                        android:layout_marginEnd="16dp"
+                        app:tint="@android:color/darker_gray"/>
+                </LinearLayout>
+
+
                 <TextView
                     android:layout_marginTop="16dp"
                     android:layout_marginStart="16dp"
-                    android:text="30 Days"
+                    android:layout_marginBottom="4dp"
+                    android:text="На прошлой неделе"
                     android:textStyle="bold"
+                    android:textSize="14sp"
+                    android:textColor="@android:color/darker_gray"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
 
-                <TextView
+                <LinearLayout
                     style="@style/DrawerItem"
-                    android:id="@+id/chat_30d_1"
-                    android:text="SQLAlchemy Python 3.13 Compatibility"/>
-                <!-- … и т.д. … -->
+                    android:id="@+id/chat_lastweek_1"
+                    android:orientation="horizontal">
 
+                    <ImageView
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_marginStart="16dp"
+                        android:src="@drawable/ic_update"
+                        android:contentDescription=""
+                        app:tint="@android:color/white"
+                        android:background="@drawable/ic_launcher_foreground"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:text="Вопросы и ответы по мо..."
+                        android:textSize="16sp"
+                        android:textColor="@android:color/black"
+                        android:layout_marginStart="12dp"/>
+
+                    <ImageButton
+                        android:id="@+id/btn_more_lastweek_1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/ic_update"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Подробнее"
+                        android:layout_marginEnd="16dp"
+                        app:tint="@android:color/darker_gray"/>
+                </LinearLayout>
+
+                <!-- При необходимости — добавьте остальные элементы для этой секции -->
             </LinearLayout>
         </ScrollView>
 
-        <!-- 3) Футер: Get App + профиль -->
+        <!-- === 2.3) Разделитель перед футером === -->
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="#DDD"/>
+            android:background="#DDDDDD"/>
 
+        <!-- === 2.4) Футер: кнопка «Обновите план» + профиль === -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -123,13 +232,26 @@
             android:padding="16dp"
             android:gravity="center_vertical">
 
+            <Button
+                android:id="@+id/btn_history"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="История посещений"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:textColor="@color/black"/>
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"/>
 
             <ImageView
                 android:id="@+id/img_profile"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:src="@drawable/ic_profile"
-                android:contentDescription="Profile"
+                android:contentDescription="Профиль"
+                app:tint="@android:color/black"
                 android:layout_marginStart="8dp"/>
         </LinearLayout>
 
