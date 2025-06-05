@@ -1,7 +1,7 @@
 package com.example.synapsechat;
 
-import android.annotation.SuppressLint
-        ;
+import android.annotation.SuppressLint;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
@@ -38,39 +38,34 @@ public class SettingsFragment extends Fragment {
     private Spinner spinnerAvailableModels;
     private Spinner spinnerAvailableVariants;
     private TextView installInfo;
-    private Button installButton,logoutButton;
+    private Button installButton, logoutButton;
 
     private SharedPreferences prefs;
     private String serverIp, username, password;
-    // выбранная базовая модель и её вариант
     private String modelToInstall;
     private String variantToInstall;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        prefs      = requireContext()
-                .getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
-        serverIp   = prefs.getString("server_ip", "");
-        username   = prefs.getString("username", "");
-        password   = prefs.getString("password", "");
+        prefs = requireContext().getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
+        serverIp = prefs.getString("server_ip", "");
+        username = prefs.getString("username", "");
+        password = prefs.getString("password", "");
     }
 
-    @Nullable @Override
+    @Nullable
+    @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
-                             @Nullable ViewGroup  container,
-                             @Nullable Bundle     savedInstanceState) {
-        View root = inflater.inflate(
-                R.layout.fragment_settings, container, false
-        );
-        installInfo             = root.findViewById(R.id.installinfo);
-        installButton           = root.findViewById(R.id.installbutton);
-
-        spinnerModels           = root.findViewById(R.id.spinnerModels);
-        spinnerAvailableModels  = root.findViewById(R.id.spinnerAvailableModels);
-        spinnerAvailableVariants= root.findViewById(R.id.spinnerAvailableVariants);
-        // 5) Logout button
-        logoutButton =  root.findViewById(R.id.btn_logout);
+                             @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+        View root = inflater.inflate(R.layout.fragment_settings, container, false);
+        installInfo = root.findViewById(R.id.installinfo);
+        installButton = root.findViewById(R.id.installbutton);
+        spinnerModels = root.findViewById(R.id.spinnerModels);
+        spinnerAvailableModels = root.findViewById(R.id.spinnerAvailableModels);
+        spinnerAvailableVariants = root.findViewById(R.id.spinnerAvailableVariants);
+        logoutButton = root.findViewById(R.id.btn_logout);
         logoutButton.setOnClickListener(v -> {
             prefs.edit().putBoolean("savelogin", false).apply();
             requireActivity().getSupportFragmentManager().beginTransaction()
@@ -86,13 +81,17 @@ public class SettingsFragment extends Fragment {
     public void onViewCreated(@NonNull View view,
                               @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        // заполнить список установленных и доступных моделей
         fetchInstalledModels("installed", spinnerModels);
         fetchInstalledModels("available", spinnerAvailableModels);
     }
 
     @SuppressLint("StaticFieldLeak")
     private void fetchInstalledModels(String status, Spinner spinner) {
+        ProgressDialog pd = new ProgressDialog(requireContext());
+        pd.setMessage("Загрузка");
+        pd.setIndeterminate(true);
+        pd.setCancelable(false);
+        pd.show();
         new AsyncTask<Void, Void, List<String>>() {
             Exception exception;
             @Override
@@ -104,8 +103,7 @@ public class SettingsFragment extends Fragment {
                     conn = (HttpURLConnection) url.openConnection();
                     conn.setRequestMethod("GET");
                     String auth = "Basic " + Base64.encodeToString(
-                            (username + ":" + password)
-                                    .getBytes("UTF-8"),
+                            (username + ":" + password).getBytes("UTF-8"),
                             Base64.NO_WRAP
                     );
                     conn.setRequestProperty("Authorization", auth);
@@ -136,6 +134,7 @@ public class SettingsFragment extends Fragment {
 
             @Override
             protected void onPostExecute(List<String> models) {
+                if (pd.isShowing()) pd.dismiss();
                 if (!isAdded()) return;
                 Context ctx = requireContext();
                 if (exception != null) {
@@ -168,26 +167,21 @@ public class SettingsFragment extends Fragment {
                                                        long id) {
                                 String selected = adapter.getItem(position);
                                 if ("installed".equals(status)) {
-                                    prefs.edit()
-                                            .putString("aimodel", selected)
-                                            .apply();
+                                    prefs.edit().putString("aimodel", selected).apply();
                                 } else if ("available".equals(status)) {
                                     modelToInstall = selected;
-                                    installInfo.setText(
-                                            "Выбрано: " + selected
-                                    );
-                                    // сразу подгрузить варианты
+                                    installInfo.setText("Выбрано: " + selected);
                                     fetchVariants(selected);
                                 }
                             }
                             @Override
-                            public void onNothingSelected(
-                                    AdapterView<?> parent) { }
+                            public void onNothingSelected(AdapterView<?> parent) { }
                         }
                 );
             }
-        }.execute();
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
+
     @SuppressLint("StaticFieldLeak")
     private void fetchVariants(String modelName) {
         new AsyncTask<Void, Void, List<String>>() {
@@ -198,14 +192,11 @@ public class SettingsFragment extends Fragment {
                 HttpURLConnection conn = null;
                 try {
                     String enc = URLEncoder.encode(modelName, "UTF-8");
-                    URL url = new URL("http://" + serverIp +
-                            "/models/" + enc + "/variants"
-                    );
+                    URL url = new URL("http://" + serverIp + "/models/" + enc + "/variants");
                     conn = (HttpURLConnection) url.openConnection();
                     conn.setRequestMethod("GET");
                     String auth = "Basic " + Base64.encodeToString(
-                            (username + ":" + password)
-                                    .getBytes("UTF-8"),
+                            (username + ":" + password).getBytes("UTF-8"),
                             Base64.NO_WRAP
                     );
                     conn.setRequestProperty("Authorization", auth);
@@ -237,8 +228,7 @@ public class SettingsFragment extends Fragment {
                 Context ctx = requireContext();
                 if (exception != null) {
                     Toast.makeText(ctx,
-                            "Не удалось получить варианты: " +
-                                    exception.getMessage(),
+                            "Не удалось получить варианты: " + exception.getMessage(),
                             Toast.LENGTH_LONG).show();
                     return;
                 }
@@ -264,18 +254,16 @@ public class SettingsFragment extends Fragment {
                                                        int position,
                                                        long id) {
                                 variantToInstall = adapter.getItem(position);
-                                installInfo.setText(
-                                        "Установить: " + variantToInstall
-                                );
+                                installInfo.setText("Установить: " + variantToInstall);
                             }
                             @Override
-                            public void onNothingSelected(
-                                    AdapterView<?> parent) { }
+                            public void onNothingSelected(AdapterView<?> parent) { }
                         }
                 );
             }
         }.execute();
     }
+
     @SuppressLint("StaticFieldLeak")
     private void sendInstallRequest() {
         if (variantToInstall == null) {
@@ -289,24 +277,17 @@ public class SettingsFragment extends Fragment {
             protected Boolean doInBackground(Void... voids) {
                 HttpURLConnection conn = null;
                 try {
-                    String nameEnc = URLEncoder.encode(
-                            variantToInstall, "UTF-8"
-                    );
-                    URL url = new URL("http://" + serverIp +
-                            "/models/" + nameEnc + "/install"
-                    );
+                    String nameEnc = URLEncoder.encode(variantToInstall, "UTF-8");
+                    URL url = new URL("http://" + serverIp + "/models/" + nameEnc + "/install");
                     conn = (HttpURLConnection) url.openConnection();
                     conn.setRequestMethod("POST");
                     conn.setConnectTimeout(5000);
                     conn.setReadTimeout(5000);
-
                     String auth = "Basic " + Base64.encodeToString(
-                            (username + ":" + password)
-                                    .getBytes(StandardCharsets.UTF_8),
+                            (username + ":" + password).getBytes(StandardCharsets.UTF_8),
                             Base64.NO_WRAP
                     );
                     conn.setRequestProperty("Authorization", auth);
-
                     int code = conn.getResponseCode();
                     if (code == HttpURLConnection.HTTP_OK) {
                         return true;

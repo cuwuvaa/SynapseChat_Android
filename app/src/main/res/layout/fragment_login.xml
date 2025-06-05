@@ -11,7 +11,7 @@
         android:id="@+id/etUsername"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Логин"
+        android:hint="@string/s_username"
         android:inputType="text"
         android:layout_marginBottom="16dp"
         android:padding="12dp"/>
@@ -20,7 +20,7 @@
         android:id="@+id/etPassword"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Пароль"
+        android:hint="@string/s_password"
         android:inputType="textPassword"
         android:layout_marginBottom="24dp"
         android:padding="12dp"/>
@@ -29,7 +29,7 @@
         android:id="@+id/etServerIp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="IP-адрес сервера"
+        android:hint="@string/s_ipport"
         android:inputType="text"
         android:layout_marginBottom="16dp"
         android:padding="12dp"/>
@@ -38,7 +38,7 @@
         android:id="@+id/btnLogin"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Войти"
+        android:text="@string/b_login"
         android:padding="12dp"/>
 
     <CheckBox
@@ -46,12 +46,12 @@
         android:layout_height="wrap_content"
         android:id="@+id/saveentering"
         android:layout_gravity="start"
-        android:text="Сохранить вход"></CheckBox>
+        android:text="@string/check_save"></CheckBox>
 
     <TextView
         android:id="@+id/btnGoRegister"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="Нет аккаунта? Запросите данные у владельца сервера" />
+        android:text="@string/no_acc" />
 </LinearLayout>

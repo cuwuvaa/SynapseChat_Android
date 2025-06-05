@@ -41,7 +41,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // 1) Drawer & Toggle
         drawer = findViewById(R.id.drawer_layout);
         toggle = new ActionBarDrawerToggle(
                 this, drawer,
@@ -52,14 +51,11 @@ public class MainActivity extends AppCompatActivity {
         toggle.syncState();
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        // 2) SharedPreferences & menu container
         prefs = getSharedPreferences("app_prefs", MODE_PRIVATE);
         menuContainer = findViewById(R.id.menu_container);
 
-        // 3) Load existing sessions into drawer
         fetchSessions();
 
-        // 4) Profile button
         findViewById(R.id.img_profile).setOnClickListener(v -> {
             loadFragment(new SettingsFragment());
             getSupportActionBar().setTitle("Настройки");
@@ -73,8 +69,6 @@ public class MainActivity extends AppCompatActivity {
             drawer.closeDrawer(GravityCompat.START);
         });
 
-
-        /* 6) New Chat button: compute next sessionId on server, then open ChatFragment */
         findViewById(R.id.btn_new_chat).setOnClickListener(v -> {
 
             new AsyncTask<Void, Void, String>() {

@@ -85,7 +85,6 @@ public class ChatFragment extends Fragment {
         tvStatus   = view.findViewById(R.id.tvStatus);
         tvStatus.setVisibility(View.GONE);
 
-        // Markdown renderer
         markwon = Markwon.create(requireContext());
 
         rvMessages.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -99,10 +98,8 @@ public class ChatFragment extends Fragment {
         password = prefs.getString("password", "");
         model    = prefs.getString("aimodel", "");
 
-        // Load history
         new FetchHistoryTask().execute();
 
-        // Send button
         btnSend.setOnClickListener(v -> {
             String prompt = etMessage.getText().toString().trim();
             if (prompt.isEmpty()) return;

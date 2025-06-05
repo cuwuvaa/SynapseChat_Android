@@ -7,13 +7,10 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true">
 
-    <!-- ========= 1) Основной контент приложения (за Drawer) ========= -->
     <FrameLayout
         android:id="@+id/fragment_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
-
-    <!-- ========= 2) Левая выезжающая панель ========= -->
     <LinearLayout
         android:id="@+id/left_drawer"
         android:layout_width="280dp"
@@ -21,8 +18,6 @@
         android:layout_gravity="start"
         android:orientation="vertical"
         android:background="?android:attr/windowBackground">
-
-        <!-- === 2.1) Header: название и кнопки === -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -35,7 +30,7 @@
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:text="SynapseChat"
+                android:text="@string/app_name"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 android:textColor="@android:color/black"/>
@@ -64,8 +59,6 @@
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="#DDDDDD"/>
-
-        <!-- === 2.2) ScrollView с секциями и элементами === -->
         <ScrollView
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -76,155 +69,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
-
-                <TextView
-                    android:layout_marginTop="12dp"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginBottom="4dp"
-                    android:text="Сегодня"
-                    android:textStyle="bold"
-                    android:textSize="14sp"
-                    android:textColor="@android:color/darker_gray"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
-
-                <!-- Пример элемента (с иконкой слева и «троеточием» справа) -->
-                <LinearLayout
-                    style="@style/DrawerItem"
-                    android:id="@+id/chat_today_1"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:layout_marginStart="16dp"
-                        android:src="@drawable/ic_update"
-                        android:contentDescription=""
-                        app:tint="@android:color/white"
-                        android:background="@drawable/ic_launcher_foreground"/>
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
-                        android:layout_height="wrap_content"
-                        android:text="Расчёт дисперсии"
-                        android:textSize="16sp"
-                        android:textColor="@android:color/black"
-                        android:layout_marginStart="12dp"/>
-
-                    <ImageButton
-                        android:id="@+id/btn_more_today_1"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:src="@drawable/ic_profile"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:contentDescription="Подробнее"
-                        android:layout_marginEnd="16dp"
-                        app:tint="@android:color/darker_gray"/>
-                </LinearLayout>
-
-                <TextView
-                    android:layout_marginTop="16dp"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginBottom="4dp"
-                    android:text="Вчера"
-                    android:textStyle="bold"
-                    android:textSize="14sp"
-                    android:textColor="@android:color/darker_gray"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
-
-                <LinearLayout
-                    style="@style/DrawerItem"
-                    android:id="@+id/chat_yesterday_1"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:layout_marginStart="16dp"
-                        android:src="@drawable/ic_profile"
-                        android:contentDescription=""
-                        app:tint="@android:color/white"
-                        android:background="@drawable/ic_launcher_background"/>
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
-                        android:layout_height="wrap_content"
-                        android:text="Рецепт безе"
-                        android:textSize="16sp"
-                        android:textColor="@android:color/black"
-                        android:layout_marginStart="12dp"/>
-
-                    <ImageButton
-                        android:id="@+id/btn_more_yesterday_1"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:src="@drawable/ic_profile"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:contentDescription="Подробнее"
-                        android:layout_marginEnd="16dp"
-                        app:tint="@android:color/darker_gray"/>
-                </LinearLayout>
-
-
-                <TextView
-                    android:layout_marginTop="16dp"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginBottom="4dp"
-                    android:text="На прошлой неделе"
-                    android:textStyle="bold"
-                    android:textSize="14sp"
-                    android:textColor="@android:color/darker_gray"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
-
-                <LinearLayout
-                    style="@style/DrawerItem"
-                    android:id="@+id/chat_lastweek_1"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:layout_marginStart="16dp"
-                        android:src="@drawable/ic_update"
-                        android:contentDescription=""
-                        app:tint="@android:color/white"
-                        android:background="@drawable/ic_launcher_foreground"/>
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
-                        android:layout_height="wrap_content"
-                        android:text="Вопросы и ответы по мо..."
-                        android:textSize="16sp"
-                        android:textColor="@android:color/black"
-                        android:layout_marginStart="12dp"/>
-
-                    <ImageButton
-                        android:id="@+id/btn_more_lastweek_1"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:src="@drawable/ic_update"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:contentDescription="Подробнее"
-                        android:layout_marginEnd="16dp"
-                        app:tint="@android:color/darker_gray"/>
-                </LinearLayout>
-
-                <!-- При необходимости — добавьте остальные элементы для этой секции -->
             </LinearLayout>
         </ScrollView>
 
-        <!-- === 2.3) Разделитель перед футером === -->
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="#DDDDDD"/>
 
-        <!-- === 2.4) Футер: кнопка «Обновите план» + профиль === -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -236,7 +88,7 @@
                 android:id="@+id/btn_history"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="История посещений"
+                android:text="@string/s_history"
                 style="@style/Widget.AppCompat.Button.Borderless"
                 android:textColor="@color/black"/>
 

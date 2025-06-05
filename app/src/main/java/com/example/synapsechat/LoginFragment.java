@@ -31,7 +31,6 @@ public class LoginFragment extends Fragment {
     private Button btnLogin;
     private CheckBox saveenter;
 
-    // Экземпляр базы данных
     private AppDatabase db;
 
     @Nullable @Override
@@ -49,7 +48,6 @@ public class LoginFragment extends Fragment {
         btnLogin    = v.findViewById(R.id.btnLogin);
         saveenter   = v.findViewById(R.id.saveentering);
 
-        // Получаем базу данных
         db = AppDatabase.getInstance(requireContext());
 
         SharedPreferences prefs = requireContext()
@@ -59,7 +57,6 @@ public class LoginFragment extends Fragment {
         etPassword.setText(prefs.getString("password", ""));
         saveenter.setChecked(prefs.getBoolean("savelogin", false));
 
-        // Если включён автологин и поля не пустые — запускаем задачу
         if (saveenter.isChecked()) {
             String ipPort = etServerIp.getText().toString().trim();
             String user   = etUsername.getText().toString().trim();
@@ -78,7 +75,6 @@ public class LoginFragment extends Fragment {
                         "Заполните все поля", Toast.LENGTH_SHORT).show();
                 return;
             }
-            // Сохраняем только один раз флаг savelogin
             prefs.edit()
                     .putBoolean("savelogin", saveenter.isChecked())
                     .apply();
@@ -103,7 +99,6 @@ public class LoginFragment extends Fragment {
         protected Boolean doInBackground(Void... voids) {
             HttpURLConnection conn = null;
             try {
-                // Предполагаем, что ipPort уже содержит "IP:PORT"
                 URL url = new URL("http://" + ipPort + "/ping");
                 conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("GET");
@@ -153,11 +148,8 @@ public class LoginFragment extends Fragment {
                     long newId = db.loginEntryDao().insert(
                             new LoginEntry(ipPort, user, pass)
                     );
-                    // Можно при желании логировать результат:
-                    // Log.d("DB", "Insert login entry result = " + newId);
                 }).start();
 
-                // 3) Переходим к экрану настроек
                 AppCompatActivity activity = (AppCompatActivity) requireActivity();
                 if (activity.getSupportActionBar() != null) {
                     activity.getSupportActionBar().setTitle("Настройки");

@@ -14,16 +14,10 @@ import com.example.synapsechat.data.LoginEntry;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Адаптер для RecyclerView, который отображает список LoginEntry (ipPort, username, password).
- */
 public class LoginEntryAdapter extends RecyclerView.Adapter<LoginEntryAdapter.ViewHolder> {
 
     private final List<LoginEntry> items = new ArrayList<>();
 
-    /**
-     * Обновить данные в адаптере (перезаписать весь список).
-     */
     public void setItems(List<LoginEntry> newItems) {
         items.clear();
         if (newItems != null) {
@@ -35,7 +29,6 @@ public class LoginEntryAdapter extends RecyclerView.Adapter<LoginEntryAdapter.Vi
     @NonNull
     @Override
     public LoginEntryAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // Надуваем макет элемента item_login_entry.xml
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_login_entry, parent, false);
         return new ViewHolder(view);
@@ -54,9 +47,6 @@ public class LoginEntryAdapter extends RecyclerView.Adapter<LoginEntryAdapter.Vi
         return items.size();
     }
 
-    /**
-     * ViewHolder, хранящий ссылки на TextView-ы одного элемента.
-     */
     public static class ViewHolder extends RecyclerView.ViewHolder {
         final TextView tvIpPort;
         final TextView tvUsername;

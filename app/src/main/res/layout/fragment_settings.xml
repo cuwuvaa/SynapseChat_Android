@@ -8,7 +8,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Выберите модель для работы"
+        android:text="@string/s_choose"
         android:textSize="24sp"
         android:layout_marginBottom="8dp"/>
 
@@ -21,7 +21,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="120dp"
-        android:text="Установка модели на сервер"
+        android:text="@string/s_setup"
         android:textSize="24sp"
         android:layout_marginBottom="8dp"/>
     <Spinner
@@ -34,7 +34,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/installinfo"
-        android:text="Установка модели: "/>
+        android:text="@string/s_setting"/>
     <Spinner
         android:id="@+id/spinnerAvailableVariants"
         android:layout_width="match_parent"
@@ -44,7 +44,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/installbutton"
-        android:text="Установить"
+        android:text="@string/b_set"
         android:layout_marginTop="10dp"/>
     <Button
         android:layout_marginTop="10dp"
@@ -52,7 +52,7 @@
         android:layout_width="match_parent"
         android:background="#FF0000"
         android:layout_height="wrap_content"
-        android:text="Выход"
+        android:text="@string/b_leave"
         android:textColor="@color/white"/>
 
 

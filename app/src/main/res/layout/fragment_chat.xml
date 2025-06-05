@@ -16,7 +16,7 @@
         android:id="@+id/tvStatus"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Бот думает..."
+        android:text="@string/s_thinking"
         android:visibility="gone"
         android:padding="4dp"
         android:textAppearance="?android:attr/textAppearanceSmall" />
@@ -31,7 +31,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:hint="Введите сообщение"
+            android:hint="@string/s_entermessage"
             android:inputType="text"
             android:minHeight="48dp" />
 
@@ -39,6 +39,6 @@
             android:id="@+id/btnSend"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Отправить"/>
+            android:text="@string/s_send"/>
     </LinearLayout>
 </LinearLayout>
